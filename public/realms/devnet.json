@@ -125,5 +125,13 @@
     "ogImage": "https://media.discordapp.net/attachments/933224453326909490/952347955157950504/alpha-illuminati-logo.png",
     "website": "https://www.alphailluminati.xyz",
     "twitter": "@illuminatialpha"
+  },
+  {
+    "symbol": "Pyth Test DAO",
+    "displayName": "Pyth Network",
+    "programId": "GovER5Lthms3bLBqWub97yVrMmEogzX7xNjdXpPPCVZw",
+    "realmId": "44xGQELUXXD1TiLEMc73RBnCxeW8XKw27LyJNpt2G8bF",
+    "website": "https://pyth.network",
+    "twitter": "@pythnetwork"
   }
 ]

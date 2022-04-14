@@ -37,6 +37,8 @@ import useVotePluginsClientStore from 'stores/useVotePluginsClientStore'
 import Link from 'next/link'
 import useNftPluginStore from 'NftVotePlugin/store/nftPluginStore'
 import { vsrPluginsPks } from '@hooks/useVotingPlugins'
+import useStakeConnection from '@hooks/useStakeConnection'
+import { SignerWalletAdapter } from '@solana/wallet-adapter-base'
 
 const TokenBalanceCard = ({ proposal }: { proposal?: Option<Proposal> }) => {
   const { councilMint, mint, realm, symbol } = useRealm()
@@ -164,6 +166,12 @@ const TokenDeposit = ({
     toManyCouncilOutstandingProposalsForUse,
     config,
   } = useRealm()
+  const { voterWeight: pythVoterWeight } = useStakeConnection(
+    connected,
+    wallet as SignerWalletAdapter,
+    connection
+  )
+
   // Do not show deposits for mints with zero supply because nobody can deposit anyway
   if (!mint || mint.supply.isZero()) {
     return null
@@ -366,7 +374,9 @@ const TokenDeposit = ({
     : ''
 
   const availableTokens =
-    depositTokenRecord && mint
+    realmInfo?.symbol === 'Pyth Test DAO'
+      ? pythVoterWeight?.toString()
+      : depositTokenRecord && mint
       ? fmtMintAmount(
           mint,
           depositTokenRecord.account.governingTokenDepositAmount
@@ -393,38 +403,42 @@ const TokenDeposit = ({
         </div>
       </div>
 
-      <p
-        className={`mt-2 opacity-70 mb-4 ml-1 text-xs ${
-          canShowAvailableTokensMessage ? 'block' : 'hidden'
-        }`}
-      >
-        You have {tokensToShow} tokens available to {canExecuteAction}.
-      </p>
+      {realmInfo?.symbol === 'Pyth Test DAO' ? null : (
+        <>
+          <p
+            className={`mt-2 opacity-70 mb-4 ml-1 text-xs ${
+              canShowAvailableTokensMessage ? 'block' : 'hidden'
+            }`}
+          >
+            You have {tokensToShow} tokens available to {canExecuteAction}.
+          </p>
 
-      <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0 mt-6">
-        <Button
-          tooltipMessage={depositTooltipContent}
-          className="sm:w-1/2"
-          disabled={!connected || !hasTokensInWallet}
-          onClick={depositAllTokens}
-        >
-          Deposit
-        </Button>
+          <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0 mt-6">
+            <Button
+              tooltipMessage={depositTooltipContent}
+              className="sm:w-1/2"
+              disabled={!connected || !hasTokensInWallet}
+              onClick={depositAllTokens}
+            >
+              Deposit
+            </Button>
 
-        <Button
-          tooltipMessage={withdrawTooltipContent}
-          className="sm:w-1/2"
-          disabled={
-            !connected ||
-            !hasTokensDeposited ||
-            (!councilVote && toManyCommunityOutstandingProposalsForUser) ||
-            toManyCouncilOutstandingProposalsForUse
-          }
-          onClick={withdrawAllTokens}
-        >
-          Withdraw
-        </Button>
-      </div>
+            <Button
+              tooltipMessage={withdrawTooltipContent}
+              className="sm:w-1/2"
+              disabled={
+                !connected ||
+                !hasTokensDeposited ||
+                (!councilVote && toManyCommunityOutstandingProposalsForUser) ||
+                toManyCouncilOutstandingProposalsForUse
+              }
+              onClick={withdrawAllTokens}
+            >
+              Withdraw
+            </Button>
+          </div>
+        </>
+      )}
       {config?.account.communityVoterWeightAddin &&
         vsrPluginsPks.includes(
           config?.account.communityVoterWeightAddin.toBase58()
