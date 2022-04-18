@@ -2,6 +2,7 @@ import { WSOL_MINT } from '@components/instructions/tools'
 import { BN } from '@project-serum/anchor'
 import { getMintDecimalAmountFromNatural } from '@tools/sdk/units'
 import tokenService from '@utils/services/token'
+import { AccountType } from '@utils/uiTypes/assets'
 import BigNumber from 'bignumber.js'
 import { useState, useEffect } from 'react'
 import useGovernanceAssets from './useGovernanceAssets'
@@ -14,8 +15,9 @@ export function useTotalTreasuryPrice() {
       const totalPrice = governedTokenAccountsWithoutNfts
         .filter(
           (x) =>
-            typeof x.extensions.mint !== 'undefined' &&
-            typeof x.extensions.token !== 'undefined'
+            x.type == AccountType.SOL ||
+            (typeof x.extensions.mint !== 'undefined' &&
+              typeof x.extensions.token !== 'undefined')
         )
         .map((x) => {
           return (

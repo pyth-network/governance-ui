@@ -214,15 +214,15 @@ const getTokenAssetAccounts = async (
   connection: ConnectionContext
 ) => {
   const accounts: AssetAccount[] = []
-  const mintAccounts = tokenAccounts.length
-    ? await getMintAccountsInfo(connection, [
-        ...tokenAccounts.map((x) => x.account.mint),
-        new PublicKey(WSOL_MINT),
-      ])
-    : []
   const nativeSolAddresses = await Promise.all(
     governances.map((x) => getNativeTreasuryAddress(realm.owner, x!.pubkey))
   )
+  const mintPubkeys = [...tokenAccounts.map((x) => x.account.mint)]
+  if (nativeSolAddresses) mintPubkeys.push(new PublicKey(WSOL_MINT))
+  const mintAccounts = mintPubkeys.length
+    ? await getMintAccountsInfo(connection, mintPubkeys)
+    : []
+
   const govNativeSolAddress = nativeSolAddresses.map((x, index) => {
     return {
       governancePk: governances[index].pubkey,
