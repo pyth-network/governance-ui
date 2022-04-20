@@ -13,6 +13,7 @@ import {
   getNftVoterWeightRecord,
   getNftMaxVoterWeightRecord,
 } from 'NftVotePlugin/sdk/accounts'
+import { PythClient } from 'PythClient'
 import {
   getRegistrarPDA,
   getVoterPDA,
@@ -28,7 +29,7 @@ type updateVoterWeightRecordTypes =
   | 'signOffProposal'
 
 export interface VotingClientProps {
-  client: VsrClient | NftVoterClient | undefined
+  client: VsrClient | NftVoterClient | PythClient | undefined
   realm: ProgramAccount<Realm> | undefined
   walletPk: PublicKey | null | undefined
 }
@@ -41,6 +42,7 @@ enum VotingClientType {
   NoClient,
   VsrClient,
   NftVoterClient,
+  PythClient,
 }
 
 class AccountData {
@@ -65,7 +67,7 @@ interface ProgramAddresses {
 
 //Abstract for common functions that plugins will implement
 export class VotingClient {
-  client: VsrClient | NftVoterClient | undefined
+  client: VsrClient | NftVoterClient | PythClient | undefined
   realm: ProgramAccount<Realm> | undefined
   walletPk: PublicKey | null | undefined
   votingNfts: NFTWithMeta[]
@@ -84,6 +86,10 @@ export class VotingClient {
     }
     if (this.client instanceof NftVoterClient) {
       this.clientType = VotingClientType.NftVoterClient
+      this.noClient = false
+    }
+    if (this.client instanceof PythClient) {
+      this.clientType = VotingClientType.PythClient
       this.noClient = false
     }
   }
@@ -120,6 +126,20 @@ export class VotingClient {
         })
       )
       return { voterWeightPk, maxVoterWeightRecord: undefined }
+    }
+    if (this.client instanceof PythClient) {
+      const stakeAccount = await this.client!.stakeConnection.getMainAccount(
+        walletPk
+      )
+      await this.client.stakeConnection.withUpdateVoterWeight(
+        instructions,
+        stakeAccount!
+      )
+
+      return {
+        voterWeightPk: instructions[0].keys[4].pubkey,
+        maxVoterWeightRecord: instructions[1].keys[2].pubkey,
+      }
     }
     if (this.client instanceof NftVoterClient) {
       const { registrar } = await getNftRegistrarPDA(
@@ -220,7 +240,7 @@ export class VotingClient {
       )
       return { voterWeightPk, maxVoterWeightRecord }
     }
-    if (this.client instanceof VsrClient) {
+    if (this.client instanceof VsrClient || this.client instanceof PythClient) {
       const props = await this.withUpdateVoterWeightRecord(
         instructions,
         'castVote'

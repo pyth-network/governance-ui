@@ -1,5 +1,6 @@
 import { BN, PublicKey } from '@blockworks-foundation/mango-client'
 import { ProgramAccount, TokenOwnerRecord } from '@solana/spl-governance'
+import { SignerWalletAdapter } from '@solana/wallet-adapter-base'
 import { isPublicKey } from '@tools/core/pubkey'
 import { useRouter } from 'next/router'
 import useNftPluginStore from 'NftVotePlugin/store/nftPluginStore'
@@ -11,13 +12,19 @@ import {
   RealmInfo,
 } from '../models/registry/api'
 import {
+  PythVoterWeight,
   VoteNftWeight,
   VoteRegistryVoterWeight,
   VoterWeight,
 } from '../models/voteWeights'
 
 import useWalletStore from '../stores/useWalletStore'
-import { nftPluginsPks, vsrPluginsPks } from './useVotingPlugins'
+import useStakeConnection from './useStakeConnection'
+import {
+  nftPluginsPks,
+  vsrPluginsPks,
+  pythPluginsPks,
+} from './useVotingPlugins'
 
 export default function useRealm() {
   const router = useRouter()
@@ -39,6 +46,13 @@ export default function useRealm() {
   } = useWalletStore((s) => s.selectedRealm)
   const votingPower = useDepositStore((s) => s.state.votingPower)
   const nftVotingPower = useNftPluginStore((s) => s.state.votingPower)
+
+  const { voterWeight: pythVotingPower } = useStakeConnection(
+    connected,
+    wallet as SignerWalletAdapter,
+    connection.current
+  )
+
   const [realmInfo, setRealmInfo] = useState<RealmInfo | undefined>(undefined)
   useMemo(async () => {
     let realmInfo = isPublicKey(symbol as string)
@@ -120,6 +134,7 @@ export default function useRealm() {
     ownTokenRecord,
     votingPower,
     nftVotingPower,
+    pythVotingPower.toBN(),
     ownCouncilTokenRecord
   )
 
@@ -151,8 +166,13 @@ const getVoterWeight = (
   ownTokenRecord: ProgramAccount<TokenOwnerRecord> | undefined,
   votingPower: BN,
   nftVotingPower: BN,
+  pythVotingPower: BN,
   ownCouncilTokenRecord: ProgramAccount<TokenOwnerRecord> | undefined
 ) => {
+  // currentPluginPk = staking program pubkey localnet
+  if (ownTokenRecord) {
+    ownTokenRecord.account.governingTokenDepositAmount = new BN(300)
+  }
   if (currentPluginPk) {
     if (vsrPluginsPks.includes(currentPluginPk.toBase58())) {
       return new VoteRegistryVoterWeight(ownTokenRecord, votingPower)
@@ -163,6 +183,9 @@ const getVoterWeight = (
         ownCouncilTokenRecord,
         nftVotingPower
       )
+    }
+    if (pythPluginsPks.includes(currentPluginPk.toBase58())) {
+      return new PythVoterWeight(ownTokenRecord, pythVotingPower)
     }
   }
   return new VoterWeight(ownTokenRecord, ownCouncilTokenRecord)

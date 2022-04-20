@@ -17,6 +17,10 @@ export const nftPluginsPks: string[] = [
   'GnftV5kLjd67tvHpNGyodwWveEKivz3ZWvvE3Z4xi2iw',
 ]
 
+export const pythPluginsPks: string[] = [
+  'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS',
+]
+
 export function useVotingPlugins() {
   const { realm, config } = useRealm()
   const {
@@ -24,6 +28,7 @@ export function useVotingPlugins() {
     handleSetVsrClient,
     handleSetNftClient,
     handleSetNftRegistrar,
+    handleSetPythClient,
     handleSetCurrentRealmVotingClient,
   } = useVotePluginsClientStore()
   const {
@@ -37,6 +42,7 @@ export function useVotingPlugins() {
   const connected = useWalletStore((s) => s.connected)
   const vsrClient = useVotePluginsClientStore((s) => s.state.vsrClient)
   const nftClient = useVotePluginsClientStore((s) => s.state.nftClient)
+  const pythClient = useVotePluginsClientStore((s) => s.state.pythClient)
   const currentClient = useVotePluginsClientStore(
     (s) => s.state.currentRealmVotingClient
   )
@@ -109,6 +115,7 @@ export function useVotingPlugins() {
   useEffect(() => {
     handleSetVsrClient(wallet, connection)
     handleSetNftClient(wallet, connection)
+    handleSetPythClient(wallet, connection)
   }, [connection.endpoint])
 
   useEffect(() => {
@@ -144,6 +151,22 @@ export function useVotingPlugins() {
         }
       }
     }
+
+    const handlePythPlugin = () => {
+      if (
+        pythClient &&
+        currentPluginPk &&
+        pythPluginsPks.includes(currentPluginPk.toBase58())
+      ) {
+        if (connected) {
+          handleSetCurrentRealmVotingClient({
+            client: pythClient,
+            realm,
+            walletPk: wallet?.publicKey,
+          })
+        }
+      }
+    }
     if (
       !currentClient ||
       currentClient.realm?.pubkey.toBase58() !== realm?.pubkey.toBase58() ||
@@ -151,11 +174,13 @@ export function useVotingPlugins() {
     ) {
       handleNftplugin()
       handleVsrPlugin()
+      handlePythPlugin()
     }
   }, [
     currentPluginPk?.toBase58(),
     vsrClient?.program.programId.toBase58(),
     nftClient?.program.programId.toBase58(),
+    pythClient?.program.programId.toBase58(),
     realm?.pubkey.toBase58(),
     connection.endpoint,
     connected,

@@ -9,12 +9,14 @@ import { ConnectionContext } from '@utils/connection'
 import { ProgramAccount, Realm } from '@solana/spl-governance'
 import { getNftRegistrarPDA } from 'NftVotePlugin/sdk/accounts'
 import { VotingClient, VotingClientProps } from '@utils/uiTypes/VotePlugin'
+import { PythClient } from 'PythClient'
 
 interface UseVotePluginsClientStore extends State {
   state: {
     //diffrent plugins to choose because we will still have functions related only to one plugin
     vsrClient: VsrClient | undefined
     nftClient: NftVoterClient | undefined
+    pythClient: PythClient | undefined
     voteStakeRegistryRegistrar: Registrar | null
     nftMintRegistrar: any
     currentRealmVotingClient: VotingClient
@@ -24,6 +26,10 @@ interface UseVotePluginsClientStore extends State {
     connection: ConnectionContext
   ) => void
   handleSetNftClient: (
+    wallet: SignerWalletAdapter | undefined,
+    connection: ConnectionContext
+  ) => void
+  handleSetPythClient: (
     wallet: SignerWalletAdapter | undefined,
     connection: ConnectionContext
   ) => void
@@ -45,6 +51,7 @@ interface UseVotePluginsClientStore extends State {
 const defaultState = {
   vsrClient: undefined,
   nftClient: undefined,
+  pythClient: undefined,
   voteStakeRegistryRegistrar: null,
   nftMintRegistrar: null,
   currentRealmVotingClient: new VotingClient({
@@ -85,6 +92,23 @@ const useVotePluginsClientStore = create<UseVotePluginsClientStore>(
       set((s) => {
         s.state.voteStakeRegistryRegistrar = existingRegistrar
       })
+    },
+    handleSetPythClient: async (wallet, connection) => {
+      const options = Provider.defaultOptions()
+      const provider = new Provider(
+        connection.current,
+        (wallet as unknown) as Wallet,
+        options
+      )
+      if (wallet) {
+        const pythClient = await PythClient.connect(
+          provider,
+          connection.cluster === 'devnet'
+        )
+        set((s) => {
+          s.state.pythClient = pythClient
+        })
+      }
     },
     handleSetNftClient: async (wallet, connection) => {
       const options = Provider.defaultOptions()
