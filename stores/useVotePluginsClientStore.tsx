@@ -101,10 +101,7 @@ const useVotePluginsClientStore = create<UseVotePluginsClientStore>(
         options
       )
       if (wallet) {
-        const pythClient = await PythClient.connect(
-          provider,
-          connection.cluster === 'devnet'
-        )
+        const pythClient = await PythClient.connect(provider)
         set((s) => {
           s.state.pythClient = pythClient
         })

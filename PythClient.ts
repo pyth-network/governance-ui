@@ -1,4 +1,4 @@
-import { Program, Provider, Wallet } from '@project-serum/anchor'
+import { Provider, Wallet } from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
 import { StakeConnection } from 'pyth-staking-api'
 
@@ -13,11 +13,7 @@ export class PythClient {
       programId: PYTH_STAKING_ID,
     }
   }
-  static async connect(
-    provider: Provider,
-    devnet?: boolean
-  ): Promise<PythClient> {
-    console.log(provider.connection.rpcEndpoint)
+  static async connect(provider: Provider): Promise<PythClient> {
     return new PythClient(
       await StakeConnection.createStakeConnection(
         provider.connection,
