@@ -228,9 +228,8 @@ const REALM = () => {
 
     try {
       setIsMultiVoting(true)
-      const {
-        blockhash: recentBlockhash,
-      } = await connection.getLatestBlockhash()
+      const { blockhash: recentBlockhash } =
+        await connection.getLatestBlockhash()
 
       const transactions: Transaction[] = []
       for (let i = 0; i < selectedProposals.length; i++) {
@@ -459,7 +458,10 @@ const REALM = () => {
             </div>
             <div className="col-span-12 md:col-span-5 lg:col-span-4 space-y-4">
               <TokenBalanceCardWrapper />
-              <NFTSCompactWrapper />
+              {realmInfo?.realmId.toBase58() ===
+              '44xGQELUXXD1TiLEMc73RBnCxeW8XKw27LyJNpt2G8bF' ? null : (
+                <NFTSCompactWrapper />
+              )}
               <AccountsCompactWrapper />
               <AssetsCompactWrapper />
             </div>
