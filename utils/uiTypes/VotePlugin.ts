@@ -13,7 +13,7 @@ import {
   getNftVoterWeightRecord,
   getNftMaxVoterWeightRecord,
 } from 'NftVotePlugin/sdk/accounts'
-import { PythClient } from 'PythClient'
+import { PythClient } from 'pyth-staking-api'
 import {
   getRegistrarPDA,
   getVoterPDA,

@@ -43,16 +43,7 @@ const useStakeConnection = (
     }
   }, [connected])
 
-  //   useEffect(() => {
-  //     const price = tokenService.getUSDTokenPrice(mintAddress)
-  //     const totalPrice = amount * price
-  //     const totalPriceFormatted = amount
-  //       ? new BigNumber(totalPrice).toFormat(0)
-  //       : ''
-  //     setTotalValue(totalPriceFormatted)
-  //   }, [amount, mintAddress])
-
-  //   return totalValue
   return { stakeConnection, stakeAccount, voterWeight }
 }
+
 export default useStakeConnection
