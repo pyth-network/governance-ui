@@ -9,6 +9,7 @@ import useVotePluginsClientStore from 'stores/useVotePluginsClientStore'
 import { getMaxVoterWeightRecord } from '@solana/spl-governance'
 import { getNftMaxVoterWeightRecord } from 'NftVotePlugin/sdk/accounts'
 import { notify } from '@utils/notifications'
+import { LOCALNET_STAKING_ADDRESS as PYTH_LOCALNET_STAKING_ADDRESS } from 'pyth-staking-api'
 export const vsrPluginsPks: string[] = [
   '4Q6WW2ouZ6V3iaNm56MTd5n2tnTm4C5fiH8miFHnAFHo',
 ]
@@ -18,7 +19,7 @@ export const nftPluginsPks: string[] = [
 ]
 
 export const pythPluginsPks: string[] = [
-  'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS',
+  PYTH_LOCALNET_STAKING_ADDRESS.toBase58(),
 ]
 
 export function useVotingPlugins() {
