@@ -9,7 +9,7 @@ import { ConnectionContext } from '@utils/connection'
 import { ProgramAccount, Realm } from '@solana/spl-governance'
 import { getNftRegistrarPDA } from 'NftVotePlugin/sdk/accounts'
 import { VotingClient, VotingClientProps } from '@utils/uiTypes/VotePlugin'
-import { PythClient } from 'PythClient'
+import { PythClient } from 'pyth-staking-api'
 
 interface UseVotePluginsClientStore extends State {
   state: {
