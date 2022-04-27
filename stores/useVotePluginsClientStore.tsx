@@ -70,7 +70,7 @@ const useVotePluginsClientStore = create<UseVotePluginsClientStore>(
       const options = Provider.defaultOptions()
       const provider = new Provider(
         connection.current,
-        (wallet as unknown) as Wallet,
+        wallet as unknown as Wallet,
         options
       )
       const vsrClient = await VsrClient.connect(
@@ -94,24 +94,36 @@ const useVotePluginsClientStore = create<UseVotePluginsClientStore>(
       })
     },
     handleSetPythClient: async (wallet, connection) => {
-      const options = Provider.defaultOptions()
-      const provider = new Provider(
-        connection.current,
-        (wallet as unknown) as Wallet,
-        options
-      )
-      if (wallet) {
-        const pythClient = await PythClient.connect(provider)
-        set((s) => {
-          s.state.pythClient = pythClient
-        })
+      if (
+        wallet &&
+        (connection.cluster === 'localnet' || connection.cluster === 'devnet')
+      ) {
+        try {
+          const options = Provider.defaultOptions()
+          const provider = new Provider(
+            connection.current,
+            wallet as unknown as Wallet,
+            options
+          )
+          console.log(wallet.publicKey)
+
+          const pythClient = await PythClient.connect(
+            provider,
+            connection.cluster
+          )
+          set((s) => {
+            s.state.pythClient = pythClient
+          })
+        } catch (e) {
+          console.error(e)
+        }
       }
     },
     handleSetNftClient: async (wallet, connection) => {
       const options = Provider.defaultOptions()
       const provider = new Provider(
         connection.current,
-        (wallet as unknown) as Wallet,
+        wallet as unknown as Wallet,
         options
       )
       const nftClient = await NftVoterClient.connect(

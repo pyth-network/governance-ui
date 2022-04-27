@@ -4,7 +4,8 @@ import { SignerWalletAdapter } from '@solana/wallet-adapter-base'
 import { isPublicKey } from '@tools/core/pubkey'
 import { useRouter } from 'next/router'
 import useNftPluginStore from 'NftVotePlugin/store/nftPluginStore'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import useVotePluginsClientStore from 'stores/useVotePluginsClientStore'
 import useDepositStore from 'VoteStakeRegistry/stores/useDepositStore'
 import {
   createUnchartedRealmInfo,
@@ -19,7 +20,6 @@ import {
 } from '../models/voteWeights'
 
 import useWalletStore from '../stores/useWalletStore'
-import useStakeConnection from './useStakeConnection'
 import {
   nftPluginsPks,
   vsrPluginsPks,
@@ -47,11 +47,20 @@ export default function useRealm() {
   const votingPower = useDepositStore((s) => s.state.votingPower)
   const nftVotingPower = useNftPluginStore((s) => s.state.votingPower)
 
-  const { voterWeight: pythVotingPower } = useStakeConnection(
-    connected,
-    wallet as SignerWalletAdapter,
-    connection.current
-  )
+  const pythClient = useVotePluginsClientStore((s) => s.state.pythClient)
+
+  useEffect(() => {
+    const updatePythClient = async () => {
+      console.log('Heree')
+      console.log(wallet?.publicKey)
+      console.log(connected)
+      if (wallet?.publicKey) {
+        await pythClient?.update(wallet.publicKey)
+        console.log(pythClient?.voterWeight.toString())
+      }
+    }
+    updatePythClient()
+  }, [connected])
 
   const [realmInfo, setRealmInfo] = useState<RealmInfo | undefined>(undefined)
   useMemo(async () => {
@@ -134,9 +143,10 @@ export default function useRealm() {
     ownTokenRecord,
     votingPower,
     nftVotingPower,
-    pythVotingPower.toBN(),
+    pythClient?.voterWeight?.toBN() || new BN(0),
     ownCouncilTokenRecord
   )
+  console.log(ownVoterWeight.votingPower?.toString())
 
   return {
     realm,
