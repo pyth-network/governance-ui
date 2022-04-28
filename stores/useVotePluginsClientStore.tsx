@@ -105,7 +105,6 @@ const useVotePluginsClientStore = create<UseVotePluginsClientStore>(
             wallet as unknown as Wallet,
             options
           )
-          console.log(wallet.publicKey)
 
           const pythClient = await PythClient.connect(
             provider,

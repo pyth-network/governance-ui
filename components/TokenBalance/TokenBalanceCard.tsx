@@ -38,7 +38,10 @@ import Link from 'next/link'
 import useNftPluginStore from 'NftVotePlugin/store/nftPluginStore'
 import { vsrPluginsPks } from '@hooks/useVotingPlugins'
 import { SignerWalletAdapter } from '@solana/wallet-adapter-base'
-import { LOCALNET_REALM_ID as PYTH_LOCALNET_REALM_ID } from 'pyth-staking-api'
+import {
+  LOCALNET_REALM_ID as PYTH_LOCALNET_REALM_ID,
+  PythBalance,
+} from 'pyth-staking-api'
 
 const TokenBalanceCard = ({ proposal }: { proposal?: Option<Proposal> }) => {
   const { councilMint, mint, realm, symbol } = useRealm()
@@ -373,7 +376,7 @@ const TokenDeposit = ({
 
   const availableTokens =
     realmInfo?.realmId.toBase58() === PYTH_LOCALNET_REALM_ID.toBase58()
-      ? ownVoterWeight.votingPower?.toString()
+      ? new PythBalance(ownVoterWeight.votingPower!).toString()
       : depositTokenRecord && mint
       ? fmtMintAmount(
           mint,
