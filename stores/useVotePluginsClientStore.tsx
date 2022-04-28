@@ -95,17 +95,16 @@ const useVotePluginsClientStore = create<UseVotePluginsClientStore>(
     },
     handleSetPythClient: async (wallet, connection) => {
       if (
-        wallet &&
-        (connection.cluster === 'localnet' || connection.cluster === 'devnet')
+        connection.cluster === 'localnet' ||
+        connection.cluster === 'devnet'
       ) {
+        const options = Provider.defaultOptions()
+        const provider = new Provider(
+          connection.current,
+          wallet as unknown as Wallet,
+          options
+        )
         try {
-          const options = Provider.defaultOptions()
-          const provider = new Provider(
-            connection.current,
-            wallet as unknown as Wallet,
-            options
-          )
-
           const pythClient = await PythClient.connect(
             provider,
             connection.cluster
