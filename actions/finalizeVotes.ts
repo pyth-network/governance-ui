@@ -12,12 +12,14 @@ import {
 import { sendTransaction } from '@utils/send'
 import { Proposal } from '@solana/spl-governance'
 import { withFinalizeVote } from '@solana/spl-governance'
+import { VotingClient } from '@utils/uiTypes/VotePlugin'
 
 export const finalizeVote = async (
   { connection, wallet, programId }: RpcContext,
   realm: PublicKey,
   proposal: ProgramAccount<Proposal>,
-  maxVoterWeightPk: PublicKey | undefined
+  maxVoterWeightPk: PublicKey | undefined,
+  client?: VotingClient
 ) => {
   const signers: Keypair[] = []
   const instructions: TransactionInstruction[] = []
@@ -27,6 +29,11 @@ export const finalizeVote = async (
   const programVersion = await getGovernanceProgramVersion(
     connection,
     programId
+  )
+  // Some plugins may need to update the max voter weight record prior to finalizing
+  await client?.withUpdateVoterWeightRecord(
+    instructions,
+    'castVote' /* finalize is not a type */
   )
 
   await withFinalizeVote(

@@ -9,7 +9,10 @@ import useVotePluginsClientStore from 'stores/useVotePluginsClientStore'
 import { getMaxVoterWeightRecord } from '@solana/spl-governance'
 import { getNftMaxVoterWeightRecord } from 'NftVotePlugin/sdk/accounts'
 import { notify } from '@utils/notifications'
-import { LOCALNET_STAKING_ADDRESS as PYTH_LOCALNET_STAKING_ADDRESS } from 'pyth-staking-api'
+import {
+  LOCALNET_STAKING_ADDRESS as PYTH_LOCALNET_STAKING_ADDRESS,
+  PythClient,
+} from 'pyth-staking-api'
 
 export const vsrPluginsPks: string[] = [
   '4Q6WW2ouZ6V3iaNm56MTd5n2tnTm4C5fiH8miFHnAFHo',
@@ -151,7 +154,20 @@ export function useVotingPlugins() {
         }
       }
     }
-
+    /* NOTE TO DANIEL: This is a little sketchy because setMaxVoterWeight is a function on the NFT store state */
+    const handlePythMaxVoterWeight = async (pythClient: PythClient) => {
+      const maxVoterWeightRecord = pythClient.maxVoteRecordPubkey
+      try {
+        const existingMaxVoterRecord = await getMaxVoterWeightRecord(
+          connection.current,
+          maxVoterWeightRecord
+        )
+        setMaxVoterWeight(existingMaxVoterRecord)
+      } catch (e) {
+        console.log(e)
+        setMaxVoterWeight(null)
+      }
+    }
     const handlePythPlugin = () => {
       if (
         pythClient &&
@@ -164,6 +180,7 @@ export function useVotingPlugins() {
             realm,
             walletPk: wallet?.publicKey,
           })
+          handlePythMaxVoterWeight(pythClient)
         }
       }
     }
