@@ -9,7 +9,7 @@ import {
   TOKEN_PROGRAM_ID,
   u64,
 } from '@solana/spl-token'
-import { WalletAdapter } from '@solana/wallet-adapter-base'
+import { SignerWalletAdapter, WalletAdapter } from '@solana/wallet-adapter-base'
 import {
   Account,
   Keypair,
@@ -79,7 +79,7 @@ export async function getFriktionDepositInstruction({
     const sdk = new FriktionSDK({
       provider: {
         connection: connection.current,
-        wallet: (wallet as unknown) as AnchorWallet,
+        wallet: wallet as unknown as AnchorWallet,
       },
     })
     const cVoltSDK = new ConnectedVoltSDK(
@@ -166,7 +166,7 @@ export async function getFriktionDepositInstruction({
           connection.current,
           governedTokenAccount.extensions.mint!.publicKey,
           TOKEN_PROGRAM_ID,
-          (null as unknown) as Account
+          null as unknown as Account
         ).getMintInfo()
         decimals = underlyingAssetMintInfo.decimals
       }
@@ -451,12 +451,18 @@ export async function getTransferNftInstruction({
       connection.current,
       nftMint
     )
-    //we find ata from connected wallet that holds the nft
-    const sourceAccount = tokenAccountsWithNftMint.find(
+    const isSolAccSource = tokenAccountsWithNftMint.find(
       (x) =>
         x.account.owner.toBase58() ===
         form.governedTokenAccount.extensions.transferAddress.toBase58()
     )?.publicKey
+    const isGovernanceSource = tokenAccountsWithNftMint.find(
+      (x) =>
+        x.account.owner.toBase58() ===
+        form.governedTokenAccount.governance.pubkey.toBase58()
+    )?.publicKey
+    //we find ata from connected wallet that holds the nft
+    const sourceAccount = isSolAccSource || isGovernanceSource
     if (!sourceAccount) {
       throw 'Nft ata not found for governance'
     }
@@ -489,7 +495,9 @@ export async function getTransferNftInstruction({
       TOKEN_PROGRAM_ID,
       sourceAccount!,
       receiverAddress,
-      form.governedTokenAccount.extensions.transferAddress,
+      isSolAccSource
+        ? form.governedTokenAccount.extensions.transferAddress
+        : form.governedTokenAccount.governance.pubkey,
       [],
       mintAmount
     )
@@ -522,7 +530,6 @@ export async function getMintInstruction({
   governedMintInfoAccount: AssetAccount | undefined
   setFormErrors: any
 }): Promise<UiInstruction> {
-  console.log(form)
   const isValid = await validateInstruction({ schema, form, setFormErrors })
   let serializedInstruction = ''
   const prerequisiteInstructions: TransactionInstruction[] = []
@@ -628,5 +635,69 @@ export async function getConvertToMsolInstruction({
     prerequisiteInstructions: prerequisiteInstructions,
   }
 
+  return obj
+}
+
+export const getTransferInstructionObj = async ({
+  connection,
+  governedTokenAccount,
+  destinationAccount,
+  amount,
+  wallet,
+}: {
+  connection: ConnectionContext
+  governedTokenAccount: AssetAccount
+  destinationAccount: string
+  amount: number | BN
+  wallet: SignerWalletAdapter
+}) => {
+  const obj: {
+    transferInstruction: TransactionInstruction | null
+    ataInstruction: TransactionInstruction | null
+  } = {
+    transferInstruction: null,
+    ataInstruction: null,
+  }
+  const sourceAccount = governedTokenAccount.extensions.transferAddress
+  //this is the original owner
+  const destinationAccountPk = new PublicKey(destinationAccount)
+  const mintPK = governedTokenAccount!.extensions!.mint!.publicKey!
+  const mintAmount =
+    typeof amount === 'number'
+      ? parseMintNaturalAmountFromDecimal(
+          amount,
+          governedTokenAccount.extensions.mint!.account.decimals
+        )
+      : amount
+
+  //we find true receiver address if its wallet and we need to create ATA the ata address will be the receiver
+  const { currentAddress: receiverAddress, needToCreateAta } = await getATA({
+    connection: connection,
+    receiverAddress: destinationAccountPk,
+    mintPK,
+    wallet: wallet!,
+  })
+  //we push this createATA instruction to transactions to create right before creating proposal
+  //we don't want to create ata only when instruction is serialized
+  if (needToCreateAta) {
+    const ataInst = Token.createAssociatedTokenAccountInstruction(
+      ASSOCIATED_TOKEN_PROGRAM_ID, // always ASSOCIATED_TOKEN_PROGRAM_ID
+      TOKEN_PROGRAM_ID, // always TOKEN_PROGRAM_ID
+      mintPK, // mint
+      receiverAddress, // ata
+      destinationAccountPk, // owner of token account
+      wallet!.publicKey! // fee payer
+    )
+    obj.ataInstruction = ataInst
+  }
+  const transferIx = Token.createTransferInstruction(
+    TOKEN_PROGRAM_ID,
+    sourceAccount!,
+    receiverAddress,
+    governedTokenAccount!.extensions!.token!.account.owner,
+    [],
+    new u64(mintAmount.toString())
+  )
+  obj.transferInstruction = transferIx
   return obj
 }

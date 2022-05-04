@@ -37,7 +37,6 @@ const DepositCard = ({ deposit }: { deposit: DepositWithMintAccount }) => {
   const { fetchRealm, fetchWalletTokenAccounts } = useWalletStore(
     (s) => s.actions
   )
-
   const handleWithDrawFromDeposit = async (
     depositEntry: DepositWithMintAccount
   ) => {
@@ -67,8 +66,8 @@ const DepositCard = ({ deposit }: { deposit: DepositWithMintAccount }) => {
       amount: depositEntry.available,
       communityMintPk: realm!.account.communityMint,
       closeDepositAfterOperation: depositEntry.currentlyLocked.isZero(),
-      tokenOwnerRecordPubKey: tokenRecords[wallet!.publicKey!.toBase58()]
-        .pubkey!,
+      tokenOwnerRecordPubKey:
+        tokenRecords[wallet!.publicKey!.toBase58()].pubkey!,
       depositIndex: depositEntry.index,
       client: client,
     })
@@ -151,6 +150,10 @@ const DepositCard = ({ deposit }: { deposit: DepositWithMintAccount }) => {
           <CardLabel
             label="Lockup Type"
             value={typeName.charAt(0).toUpperCase() + typeName.slice(1)}
+          />
+          <CardLabel
+            label="Allow dao to clawback"
+            value={deposit.allowClawback ? 'Yes' : 'No'}
           />
           {isVest && (
             <CardLabel

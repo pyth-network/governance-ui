@@ -138,7 +138,7 @@ const MakeCreatePerpMarket = ({
       tx.add(makeAskAccountInstruction.instruction)
 
       tx.recentBlockhash = (
-        await connection.getRecentBlockhash('max')
+        await connection.getLatestBlockhash('max')
       ).blockhash
       const signers = [
         makeEventQueueAccountInstruction.account,
@@ -238,13 +238,13 @@ const MakeCreatePerpMarket = ({
 
   const recommendedLmSizeShift =
     form.maxDepthBps &&
-    Math.floor(Math.log2((form.maxDepthBps as any) as number) - 3)
+    Math.floor(Math.log2(form.maxDepthBps as any as number) - 3)
 
   const recommendedMaintLeverage =
-    form.initLeverage && ((form.initLeverage as any) as number) * 2
+    form.initLeverage && (form.initLeverage as any as number) * 2
 
   const recommendedLiquidationFee =
-    form.initLeverage && 1 / (((form.initLeverage as any) as number) * 4)
+    form.initLeverage && 1 / ((form.initLeverage as any as number) * 4)
 
   return (
     <>

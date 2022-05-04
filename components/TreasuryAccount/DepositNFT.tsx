@@ -17,10 +17,8 @@ const DepositNFT = ({ onClose }) => {
   const currentAccount = useTreasuryAccountStore((s) => s.currentAccount)
   const connection = useWalletStore((s) => s.connection)
   const connected = useWalletStore((s) => s.connected)
-  const [
-    currentDepositView,
-    setCurrentDepositView,
-  ] = useState<DepositState | null>(null)
+  const [currentDepositView, setCurrentDepositView] =
+    useState<DepositState | null>(null)
 
   return (
     <>
@@ -36,7 +34,7 @@ const DepositNFT = ({ onClose }) => {
           href={
             currentAccount?.governance?.pubkey
               ? getExplorerUrl(
-                  connection.endpoint,
+                  connection.cluster,
                   currentAccount!.governance!.pubkey.toBase58()
                 )
               : ''

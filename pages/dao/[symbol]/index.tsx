@@ -99,6 +99,7 @@ const REALM = () => {
     tokenRecords,
     ownVoterWeight,
     ownTokenRecord,
+    isNftMode,
   } = useRealm()
   const proposalsPerPage = 20
   const [filters, setFilters] = useState<ProposalState[]>([])
@@ -228,9 +229,8 @@ const REALM = () => {
 
     try {
       setIsMultiVoting(true)
-      const {
-        blockhash: recentBlockhash,
-      } = await connection.getLatestBlockhash()
+      const { blockhash: recentBlockhash } =
+        await connection.getLatestBlockhash()
 
       const transactions: Transaction[] = []
       for (let i = 0; i < selectedProposals.length; i++) {
@@ -242,7 +242,12 @@ const REALM = () => {
         //will run only if plugin is connected with realm
         const plugin = await client?.withCastPluginVote(
           instructions,
-          selectedProposal.proposalPk
+          {
+            account: selectedProposal.proposal,
+            pubkey: selectedProposal.proposalPk,
+            owner: realm.pubkey,
+          },
+          ownTokenRecord
         )
         if (client.client instanceof NftVoterClient === false) {
           await withCastVote(
@@ -289,6 +294,14 @@ const REALM = () => {
     }
     setIsMultiVoting(false)
   }
+
+  const showMultiVote = useMemo(
+    () =>
+      realm
+        ? realm.account.votingProposalCount > 1 && connected && !isNftMode
+        : false,
+    [realm, connected]
+  )
 
   return (
     <>
@@ -393,15 +406,24 @@ const REALM = () => {
                           setFilters={setFilters}
                         />
                       </div>
-                      <div className="flex flex-col-reverse lg:flex-row items-center justify-between lg:space-x-3 w-full">
-                        <h4 className="font-normal mb-0 text-fgd-2 lg:whitespace-nowrap">{`${
+                      <div
+                        className={`flex lg:flex-row items-center justify-between lg:space-x-3 w-full ${
+                          showMultiVote ? 'flex-col-reverse' : 'flex-row'
+                        }`}
+                      >
+                        <h4 className="font-normal mb-0 text-fgd-2 whitespace-nowrap">{`${
                           filteredProposals.length
                         } Proposal${
                           filteredProposals.length === 1 ? '' : 's'
                         }`}</h4>
-                        <div className="flex items-center justify-between lg:justify-end pb-3 lg:pb-0 lg:space-x-3 w-full">
-                          {realm.account.votingProposalCount > 1 &&
-                          connected ? (
+                        <div
+                          className={`flex items-center lg:justify-end lg:pb-0 lg:space-x-3 w-full ${
+                            showMultiVote
+                              ? 'justify-between pb-3'
+                              : 'justify-end'
+                          }`}
+                        >
+                          {showMultiVote ? (
                             <div className="flex items-center">
                               <p className="mb-0 mr-1 text-fgd-3">
                                 Multi-vote Mode

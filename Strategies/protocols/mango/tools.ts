@@ -122,9 +122,9 @@ export const calculateAllDepositsInMangoAccountsForMint = (
 ) => {
   let deposited = 0
   const group = market!.group
-  const depositIndex = group?.tokens.findIndex(
-    (x) => x.mint.toBase58() === mint.toBase58()
-  )
+  const depositIndex =
+    mint &&
+    group?.tokens.findIndex((x) => x.mint.toBase58() === mint.toBase58())
   if (accounts?.length && typeof depositIndex !== 'undefined' && group) {
     const depositsWithAmountHiherThenZero = accounts
       .map((x) => x.deposits[depositIndex])
@@ -211,8 +211,8 @@ const HandleMangoDeposit: HandleCreateProposalWithStrategy = async (
         )
       )
     ),
-    holdUpTime: matchedTreasury.governance!.account!.config
-      .minInstructionHoldUpTime,
+    holdUpTime:
+      matchedTreasury.governance!.account!.config.minInstructionHoldUpTime,
     prerequisiteInstructions: [],
     chunkSplitByDefault: true,
   }
@@ -230,8 +230,8 @@ const HandleMangoDeposit: HandleCreateProposalWithStrategy = async (
       data: getInstructionDataFromBase64(
         serializeInstructionToBase64(createMangoAccountIns)
       ),
-      holdUpTime: matchedTreasury.governance!.account!.config
-        .minInstructionHoldUpTime,
+      holdUpTime:
+        matchedTreasury.governance!.account!.config.minInstructionHoldUpTime,
       prerequisiteInstructions: [...prerequisiteInstructions],
       splitToChunkByDefault: true,
     }
@@ -249,8 +249,8 @@ const HandleMangoDeposit: HandleCreateProposalWithStrategy = async (
       data: getInstructionDataFromBase64(
         serializeInstructionToBase64(delegateMangoAccount)
       ),
-      holdUpTime: matchedTreasury.governance!.account!.config
-        .minInstructionHoldUpTime,
+      holdUpTime:
+        matchedTreasury.governance!.account!.config.minInstructionHoldUpTime,
       prerequisiteInstructions: [],
       splitToChunkByDefault: true,
     }

@@ -37,10 +37,8 @@ interface CloseBuffersForm {
 
 const CloseBuffers = ({ program }: { program: ProgramAccount<Governance> }) => {
   const { handleCreateProposal } = useCreateProposal()
-  const {
-    governedTokenAccountsWithoutNfts,
-    assetAccounts,
-  } = useGovernanceAssets()
+  const { governedTokenAccountsWithoutNfts, assetAccounts } =
+    useGovernanceAssets()
   const router = useRouter()
   const connection = useWalletStore((s) => s.connection)
   const wallet = useWalletStore((s) => s.current)
@@ -248,7 +246,7 @@ const CloseBuffers = ({ program }: { program: ProgramAccount<Governance> }) => {
                 <a
                   className="default-transition flex items-center text-fgd-1 hover:text-fgd-3 text-xs"
                   key={x.pubkey.toBase58()}
-                  href={getExplorerUrl(connection.endpoint, x.pubkey)}
+                  href={getExplorerUrl(connection.cluster, x.pubkey)}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}

@@ -79,10 +79,8 @@ const SendTokens = ({ isNft = false }) => {
   const [selectedNfts, setSelectedNfts] = useState<NFTWithMint[]>([])
   const [voteByCouncil, setVoteByCouncil] = useState(false)
   const [showOptions, setShowOptions] = useState(false)
-  const [
-    destinationAccount,
-    setDestinationAccount,
-  ] = useState<TokenProgramAccount<AccountInfo> | null>(null)
+  const [destinationAccount, setDestinationAccount] =
+    useState<TokenProgramAccount<AccountInfo> | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [formErrors, setFormErrors] = useState({})
   const destinationAccountName =
@@ -232,7 +230,9 @@ const SendTokens = ({ isNft = false }) => {
   const transactionDolarAmount = calcTransactionDolarAmount(form.amount)
   const nftName = selectedNfts[0]?.val?.name
   const nftTitle = `Send ${nftName ? nftName : 'NFT'} to ${
-    form.destinationAccount
+    tryParseKey(form.destinationAccount)
+      ? abbreviateAddress(new PublicKey(form.destinationAccount))
+      : ''
   }`
   const proposalTitle = isNFT
     ? nftTitle
@@ -293,7 +293,14 @@ const SendTokens = ({ isNft = false }) => {
         {isNFT ? (
           <NFTSelector
             onNftSelect={(nfts) => setSelectedNfts(nfts)}
-            ownerPk={currentAccount.extensions.transferAddress!}
+            ownersPk={
+              currentAccount.isSol
+                ? [
+                    currentAccount.extensions.transferAddress!,
+                    currentAccount.governance.pubkey,
+                  ]
+                : [currentAccount.governance.pubkey]
+            }
           ></NFTSelector>
         ) : (
           <Input

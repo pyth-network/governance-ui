@@ -64,11 +64,12 @@ const NewProgramForm = () => {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [formErrors, setFormErrors] = useState({})
-  const tokenOwnerRecord = ownVoterWeight.canCreateGovernanceUsingCouncilTokens()
-    ? ownVoterWeight.councilTokenRecord
-    : realm && ownVoterWeight.canCreateGovernanceUsingCommunityTokens(realm)
-    ? ownVoterWeight.communityTokenRecord
-    : undefined
+  const tokenOwnerRecord =
+    ownVoterWeight.canCreateGovernanceUsingCouncilTokens()
+      ? ownVoterWeight.councilTokenRecord
+      : realm && ownVoterWeight.canCreateGovernanceUsingCommunityTokens(realm)
+      ? ownVoterWeight.communityTokenRecord
+      : undefined
 
   const handleSetForm = ({ propertyName, value }) => {
     setFormErrors({})
@@ -114,7 +115,7 @@ const NewProgramForm = () => {
           new PublicKey(form.programId),
           governanceConfig,
           form.transferAuthority,
-          tokenOwnerRecord!.pubkey,
+          tokenOwnerRecord!,
           client
         )
         setIsLoading(false)

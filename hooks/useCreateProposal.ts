@@ -15,13 +15,8 @@ export default function useCreateProposal() {
   const { fetchRealmGovernance, refetchProposals } = useWalletStore(
     (s) => s.actions
   )
-  const {
-    realm,
-    ownVoterWeight,
-    mint,
-    councilMint,
-    canChooseWhoVote,
-  } = useRealm()
+  const { realm, ownVoterWeight, mint, councilMint, canChooseWhoVote } =
+    useRealm()
   const { getRpcContext } = useRpcContext()
   const handleCreateProposal = async ({
     title,
@@ -67,7 +62,7 @@ export default function useCreateProposal() {
       rpcContext,
       realm!,
       selectedGovernance.pubkey,
-      ownTokenRecord!.pubkey,
+      ownTokenRecord!,
       title,
       description,
       proposalMint,

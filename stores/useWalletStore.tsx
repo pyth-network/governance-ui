@@ -192,19 +192,29 @@ const useWalletStore = create<WalletStore>((set, get) => ({
       const connection = get().connection.current
       const connected = get().connected
       const programId = get().selectedRealm.programId
+      const realmId = get().selectedRealm.realm?.pubkey
+      const realmMintPk = get().selectedRealm.realm?.account.communityMint
       const wallet = get().current
       const walletOwner = wallet?.publicKey
       const set = get().set
 
-      if (connected && walletOwner && programId) {
-        const ownVoteRecordsByProposal = await getVoteRecordsByVoterMapByProposal(
-          connection,
-          programId,
-          walletOwner
-        )
-
+      if (connected && walletOwner && programId && realmId) {
+        const [ownVoteRecordsByProposal, tokenRecords] = await Promise.all([
+          getVoteRecordsByVoterMapByProposal(
+            connection,
+            programId,
+            walletOwner
+          ),
+          getTokenOwnerRecordsForRealmMintMapByOwner(
+            connection,
+            programId,
+            realmId,
+            realmMintPk
+          ),
+        ])
         set((state) => {
           state.ownVoteRecordsByProposal = ownVoteRecordsByProposal
+          state.selectedRealm.tokenRecords = tokenRecords
         })
       } else {
         set((state) => {
@@ -256,31 +266,27 @@ const useWalletStore = create<WalletStore>((set, get) => ({
       const realmCouncilMintPk = realm.account.config.councilMint
       const realmCouncilMint =
         realmCouncilMintPk && realmMints[realmCouncilMintPk.toBase58()]
-      const [
-        governances,
-        tokenRecords,
-        councilTokenOwnerRecords,
-        config,
-      ] = await Promise.all([
-        getGovernanceAccounts(connection, programId, Governance, [
-          pubkeyFilter(1, realmId)!,
-        ]),
+      const [governances, tokenRecords, councilTokenOwnerRecords, config] =
+        await Promise.all([
+          getGovernanceAccounts(connection, programId, Governance, [
+            pubkeyFilter(1, realmId)!,
+          ]),
 
-        getTokenOwnerRecordsForRealmMintMapByOwner(
-          connection,
-          programId,
-          realmId,
-          realmMintPk
-        ),
+          getTokenOwnerRecordsForRealmMintMapByOwner(
+            connection,
+            programId,
+            realmId,
+            realmMintPk
+          ),
 
-        getTokenOwnerRecordsForRealmMintMapByOwner(
-          connection,
-          programId,
-          realmId,
-          realmCouncilMintPk
-        ),
-        getRealmConfig(connection, programId, realmId),
-      ])
+          getTokenOwnerRecordsForRealmMintMapByOwner(
+            connection,
+            programId,
+            realmId,
+            realmCouncilMintPk
+          ),
+          getRealmConfig(connection, programId, realmId),
+        ])
 
       const governancesMap = accountsToPubkeyMap(governances)
 
